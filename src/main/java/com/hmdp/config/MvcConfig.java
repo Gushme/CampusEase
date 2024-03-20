@@ -37,7 +37,11 @@ public class MvcConfig implements WebMvcConfigurer {
                 ).order(1);
 
         // token刷新拦截器
-        registry.addInterceptor(new RefreshTokenIntercepter(stringRedisTemplate)).order(0);
+        registry.addInterceptor(new RefreshTokenIntercepter(stringRedisTemplate))
+                .excludePathPatterns(
+                        "/user/code",
+                        "/user/login").order(0);
+
     }
 
 }
