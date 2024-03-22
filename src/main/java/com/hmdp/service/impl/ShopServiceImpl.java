@@ -67,10 +67,12 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             if(!isLock) {
                 // 4.3 失败，则休眠并重试
                 Thread.sleep(50);
-                queryWithMutex(id);
+                return queryWithMutex(id);
             }
             // 4.4 成功，根据id查询数据库
             shop = getById(id);
+            //模拟重建延时
+            Thread.sleep(200);
             // 5. 数据库不存在，返回错误
             if(shop == null) {
                 // 将空值写入redis
@@ -83,6 +85,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
+            // 7. 释放互斥锁
             unlock(lockKey);
         }
 

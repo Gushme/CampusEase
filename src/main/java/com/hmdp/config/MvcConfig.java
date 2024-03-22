@@ -40,7 +40,8 @@ public class MvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(new RefreshTokenIntercepter(stringRedisTemplate))
                 .excludePathPatterns(
                         "/user/code",
-                        "/user/login").order(0);
+                        "/user/login",
+                        "/shop/**").order(0);
 
     }
 
