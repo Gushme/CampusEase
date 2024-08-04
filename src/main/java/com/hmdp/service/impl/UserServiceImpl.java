@@ -70,7 +70,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if(cacheCode == null || !cacheCode.equals(code)) {
             return Result.fail("验证码错误");
         }
-        // 3. 根据手机号查询用户
+        // 3. 根据手机号查询用户 mybatis-plus
         User user = query().eq("phone", phone).one();
         // 4. 判断用户是否存在
         if(user == null) {
@@ -79,13 +79,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         // 6. 保存用户信息到redis中
         // 6.1 随机生成token，作为登录令牌
-        String token = UUID.randomUUID().toString(true);
+        String token = UUID.randomUUID().toString(true); // 不带下划线的UUID
         // 6.2 将User对象转化为HashMap存储
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
         Map<String, Object> userMap = BeanUtil.beanToMap(userDTO, new HashMap<>(),
                 CopyOptions.create()
                         .setIgnoreNullValue(true)
-                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
+                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString())); // 这是为了把UserDTO中的Long转换为String类型，因为用的是StringRedisTemplate
         // 6.3 存储
         stringRedisTemplate.opsForHash().putAll(RedisConstants.LOGIN_USER_KEY + token, userMap);
         // 6.4 设置有效期

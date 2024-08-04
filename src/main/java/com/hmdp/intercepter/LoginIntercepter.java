@@ -24,12 +24,14 @@ import java.util.concurrent.TimeUnit;
 public class LoginIntercepter implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 判断是否需要拦截(ThreadLocal中是否有用户)
         // 从ThreadLocal中获取用户，判断是否存在
         UserDTO user = UserHolder.getUser();
         if(user == null) {
             response.setStatus(401);
             return false;
         }
+        // 有用户，则放行
         return true;
     }
 

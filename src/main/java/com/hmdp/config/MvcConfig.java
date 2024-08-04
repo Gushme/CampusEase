@@ -25,7 +25,7 @@ public class MvcConfig implements WebMvcConfigurer {
     private StringRedisTemplate stringRedisTemplate;
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // token拦截器
+        // token拦截器 后执行
         registry.addInterceptor(new LoginIntercepter())
                 .excludePathPatterns(
                         "/user/code",
@@ -36,7 +36,7 @@ public class MvcConfig implements WebMvcConfigurer {
                         "/voucher/**"
                 ).order(1);
 
-        // token刷新拦截器
+        // token刷新拦截器 先执行
         registry.addInterceptor(new RefreshTokenIntercepter(stringRedisTemplate))
                 .excludePathPatterns(
                         "/user/code",
