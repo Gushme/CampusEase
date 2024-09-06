@@ -50,6 +50,12 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             // 库存不足
             return Result.fail("库存不足！");
         }
+        // 增加功能：一人一单   查询订单判断是否存在
+        Integer count = query().eq("user_id", UserHolder.getUser().getId()).eq("voucher_id", voucherId).count();
+        if (count > 0) {
+           return Result.fail("您已经购买过一次!");
+        }
+
         //5，扣减库存
         boolean success = seckillVoucherService.update()
                 .setSql("stock= stock -1")
