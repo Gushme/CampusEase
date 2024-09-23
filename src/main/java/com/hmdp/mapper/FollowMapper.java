@@ -15,5 +15,5 @@ import org.apache.ibatis.annotations.Delete;
 public interface FollowMapper extends BaseMapper<Follow> {
 
     @Delete("delete from tb_follow where user_id = #{userId} and follow_user_id = #{followUserId}")
-    void delete(Long userId, Long followUserId);
+    boolean delete(Long userId, Long followUserId);
 }
