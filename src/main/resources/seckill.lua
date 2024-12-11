@@ -1,3 +1,4 @@
+-- 库存用 String类型，订单用 Set类型，存储每张优惠券已经买过的用户
 -- 1.参数列表
 -- 1.1 优惠券id
 local voucherId = ARGV[1]

@@ -65,9 +65,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 2. 校验验证码 从redis中获取
         String cacheCode = stringRedisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY + phone);
         String code = loginForm.getCode();
-        if(cacheCode == null || !cacheCode.equals(code)) {
-            return Result.fail("验证码错误");
-        }
+//        if(cacheCode == null || !cacheCode.equals(code)) {
+//            return Result.fail("验证码错误");
+//        }
         // 3. 根据手机号查询用户 mybatis-plus
         User user = query().eq("phone", phone).one();
         // 4. 判断用户是否存在

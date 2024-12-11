@@ -3,9 +3,11 @@ package com.CampusEase;
 import com.CampusEase.service.impl.ShopServiceImpl;
 import com.CampusEase.utils.RedisIdWorker;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.annotation.Resource;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,4 +46,12 @@ class CampusEaseApplicationTests {
         long end = System.currentTimeMillis();
         System.out.println("time = " + (end - begin));
     }
+
+    @Resource
+    RabbitTemplate rabbitTemplate;
+    @Test
+    public void testSendMessage(){
+        rabbitTemplate.convertAndSend("CampusEase.direct","direct.seckill","测试发送消息");
+    }
+
 }
