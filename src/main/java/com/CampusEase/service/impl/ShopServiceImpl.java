@@ -11,12 +11,15 @@ import com.CampusEase.service.IShopService;
 import com.CampusEase.utils.CacheClient;
 import com.CampusEase.utils.RedisConstants;
 import com.CampusEase.utils.RedisData;
+import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -26,8 +29,34 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
     @Autowired
     private CacheClient cacheClient;
+
+    @Resource
+    private Cache<String,Object> caffeineCache;
+
     @Override
     public Result queryById(Long id) {
+        //1.从Caffeine中查询数据
+        Object o = caffeineCache.getIfPresent(RedisConstants.CACHE_SHOP_KEY + id);
+        if(Objects.nonNull(o)){
+            log.debug("从Caffeine中查询到数据...");
+            return Result.ok( o);
+        }
+
+        //缓存穿透
+        Shop shop = cacheClient.queryWithPassThrough(RedisConstants.CACHE_SHOP_KEY,id,Shop.class,this::getById,RedisConstants.CACHE_SHOP_TTL,TimeUnit.MINUTES);
+        if(shop != null){
+            log.debug("从Redis中查到数据..");
+            caffeineCache.put(RedisConstants.CACHE_SHOP_KEY + id, shop);
+        }
+
+
+        if(shop == null){
+            return Result.fail("店铺不存在！");
+        }
+
+        //7.返回数据
+        return Result.ok(shop);
+
         // 缓存穿透 -> 缓存空值实现  调用封装的redis类函数
         // Shop shop = cacheClient.queryWithPassThrough(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.SECONDS);
 
@@ -35,10 +64,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         // Shop shop = queryWithMutex(id);
 
         // 缓存击穿 -> 逻辑过期解决
-        Shop shop = cacheClient.queryWithLogicalExpire(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL);
-        if(shop == null)
-            return Result.fail("店铺不存在!");
-        return Result.ok(shop);
+//        Shop shop = cacheClient.queryWithLogicalExpire(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL);
+//        if(shop == null)
+//            return Result.fail("店铺不存在!");
+//        return Result.ok(shop);
     }
 
     /*// 定义线程池
