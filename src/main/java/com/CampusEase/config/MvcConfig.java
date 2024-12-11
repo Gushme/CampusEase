@@ -23,9 +23,9 @@ public class MvcConfig implements WebMvcConfigurer {
     private StringRedisTemplate stringRedisTemplate;
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // token拦截器 后执行
+        // token拦截器 后执行 拦截需要登陆的功能
         registry.addInterceptor(new LoginIntercepter())
-                .excludePathPatterns(
+                .excludePathPatterns(   // 排除不需要登陆就能看的内容
                         "/user/code",
                         "/user/login",
                         "/blog/hot",
@@ -34,14 +34,12 @@ public class MvcConfig implements WebMvcConfigurer {
                         "/voucher/**"
                 ).order(1);
 
-        // token刷新拦截器 先执行
+        // token刷新拦截器 先执行 拦截所有路径，确保每一次请求都刷新token有效期
         registry.addInterceptor(new RefreshTokenIntercepter(stringRedisTemplate))
                 .excludePathPatterns(
                         "/user/code",
-                        "/user/login",
-                        "/shop/**",
-                        "/voucher/**",
-                        "/shop-type/**").order(0);
+                        "/user/login"
+                ).order(0);
 
     }
 

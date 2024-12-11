@@ -33,16 +33,13 @@ public class RefreshTokenIntercepter implements HandlerInterceptor {
         String token = request.getHeader("authorization");
         // 3. 判断用户是否存在
         if (StrUtil.isBlank(token)) {
-            // 4. 不存在，拦截，返回401状态码
-            response.setStatus(401);
-            return false;
+            // 4. 不存在，放行，交由下一级拦截器拦截
+            return true;
         }
         // 2. 基于token获取redis中的用户
         Map<Object, Object> userMap = stringRedisTemplate.opsForHash().entries(RedisConstants.LOGIN_USER_KEY + token);
         if (userMap.isEmpty()) {
-            // 判断是否存在
-            response.setStatus(401);
-            return false;
+            return true;
         }
         // 将查询到的Hash数据转为UserDTO对象
         UserDTO userDTO = BeanUtil.fillBeanWithMap(userMap, new UserDTO(), false);

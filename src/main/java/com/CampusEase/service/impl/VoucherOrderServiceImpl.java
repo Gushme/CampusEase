@@ -1,10 +1,12 @@
 package com.CampusEase.service.impl;
 
 import com.CampusEase.dto.Result;
+import com.CampusEase.entity.SeckillVoucher;
 import com.CampusEase.entity.VoucherOrder;
 import com.CampusEase.mapper.VoucherOrderMapper;
 import com.CampusEase.service.ISeckillVoucherService;
 import com.CampusEase.service.IVoucherOrderService;
+import com.CampusEase.utils.SimpleRedisLock;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.CampusEase.utils.RedisIdWorker;
 import com.CampusEase.utils.UserHolder;
@@ -20,17 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.concurrent.*;
 
-/**
- * <p>
- *  服务实现类
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
- */
 @Slf4j
 @Service
 public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
@@ -101,7 +96,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                 SECKILL_SCRIPT,
                 Collections.emptyList(),
                 voucherId.toString(),
-                userID.toString().toString()
+                userID.toString()
         );
         // 2. 判断结果是否为0
         if(result.intValue() != 0) {
@@ -125,42 +120,42 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         return Result.ok(orderId);
     }
-//    @Override
-//    public Result seckillVoucher(Long voucherId) {
-//        // 1.查询优惠券
-//        SeckillVoucher voucher = seckillVoucherService.getById(voucherId);
-//        // 2.判断秒杀是否开始
-//        if (voucher.getBeginTime().isAfter(LocalDateTime.now())) {
-//            // 尚未开始
-//            return Result.fail("秒杀尚未开始！");
-//        }
-//        // 3.判断秒杀是否已经结束
-//        if (voucher.getEndTime().isBefore(LocalDateTime.now())) {
-//            // 已经结束
-//            return Result.fail("秒杀已经结束！");
-//        }
-//        // 4.判断库存是否充足
-//        if (voucher.getStock() < 1) {
-//            // 库存不足
-//            return Result.fail("库存不足！");
-//        }
-//        Long userId = UserHolder.getUser().getId();
-//        // 创建锁对象
-//        SimpleRedisLock simpleRedisLock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
-////        RLock lock = redissonClient.getLock("lock:order:" + userId);
-//        // 获取锁
-//        boolean success = simpleRedisLock.tryLock(1200);
-//        if (!success) {
-//            Result.fail("不允许重复下单！");
-//        }
-//        try {
-//            // 获取代理对象(事务)，确保事务生效
-//            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
-//            return proxy.createVoucherOrder(voucherId);
-//        } finally {
-//            simpleRedisLock.unlock();
-//        }
-//    }
+/*SET NX 和 Redisson 实现分布式锁代码    @Override
+    public Result seckillVoucher(Long voucherId) {
+        // 1.查询优惠券
+        SeckillVoucher voucher = seckillVoucherService.getById(voucherId);
+        // 2.判断秒杀是否开始
+        if (voucher.getBeginTime().isAfter(LocalDateTime.now())) {
+            // 尚未开始
+            return Result.fail("秒杀尚未开始！");
+        }
+        // 3.判断秒杀是否已经结束
+        if (voucher.getEndTime().isBefore(LocalDateTime.now())) {
+            // 已经结束
+            return Result.fail("秒杀已经结束！");
+        }
+        // 4.判断库存是否充足
+        if (voucher.getStock() < 1) {
+            // 库存不足
+            return Result.fail("库存不足！");
+        }
+        Long userId = UserHolder.getUser().getId();
+        // 创建锁对象
+//        SimpleRedisLock simpleRedisLock = new SimpleRedisLock("order:" + userId, stringRedisTemplate); // 使用 SET NX EXPIRE 实现分布式锁
+        RLock lock = redissonClient.getLock("lock:order:" + userId); // 使用 Redisson 实现分布式锁
+        // 获取锁
+        boolean success = simpleRedisLock.tryLock();
+        if (!success) {
+            Result.fail("不允许重复下单！");
+        }
+        try {
+            // 获取代理对象(事务)，确保事务生效
+            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
+            return proxy.createVoucherOrder(voucherId);
+        } finally {
+            simpleRedisLock.unlock();
+        }
+    }*/
 
     @Transactional
     public Result createVoucherOrder(Long voucherId) {
