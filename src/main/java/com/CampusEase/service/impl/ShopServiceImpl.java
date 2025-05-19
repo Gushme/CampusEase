@@ -39,7 +39,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         Object o = caffeineCache.getIfPresent(RedisConstants.CACHE_SHOP_KEY + id);
         if(Objects.nonNull(o)){
             log.debug("从Caffeine中查询到数据...");
-            return Result.ok( o);
+            return Result.ok(o);
         }
 
         //缓存穿透

@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 import java.io.IOException;
+import java.util.concurrent.*;
 
 /**
  * ClassName: RabbitMQConfig
@@ -31,21 +32,29 @@ public class RabbitMQConfig {
     @Autowired
     @Lazy
     private IVoucherOrderService voucherOrderService;
-
+    final private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+            10, 10,
+            0L, TimeUnit.MILLISECONDS,
+            new ArrayBlockingQueue<>(1000),
+            Executors.defaultThreadFactory(),
+            new ThreadPoolExecutor.AbortPolicy()
+    );
     @RabbitListener(bindings = @QueueBinding(
             value = @Queue(name = "direct.seckill.queue"),
             key = "direct.seckill",
             exchange = @Exchange(name = "CampusEase.direct", type = ExchangeTypes.DIRECT)
     ))
     public void recieveMessage(Message message, Channel channel, VoucherOrder voucherOrder){
-        try {
-            voucherOrderService.handleVoucherOrder(voucherOrder);
+        threadPoolExecutor.submit(() -> {
             // 创建完成时手动 ack
-            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("监听到了" + message);
+            try {
+                voucherOrderService.handleVoucherOrder(voucherOrder);
+                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("监听到了" + message);
+        });
     }
 
     @Bean
