@@ -121,7 +121,3 @@ src/main/java/com/CampusEase/
 3. 提交您的更改 (`git commit -m 'Add some amazing feature'`)
 4. 推送到分支 (`git push origin feature/amazing-feature`)
 5. 打开一个 Pull Request
-
-## 许可证
-
-[待定] - 请添加适合您项目的许可证 
