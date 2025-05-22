@@ -60,7 +60,7 @@ class CampusEaseApplicationTests {
     public void testGPTDemo() {
         OpenAiChatModel model = OpenAiChatModel.builder()
                 .baseUrl("https://api.deepseek.com/v1")
-                .apiKey("sk-e17abee33b214d4795f551c5694614e3") //设置模型apiKey
+                .apiKey("") //设置模型apiKey
                 .modelName("deepseek-chat") //设置模型名称
                 .build();
         //向模型提问
